@@ -1,0 +1,109 @@
+// Space Lights + LCD Messages
+// LEDs, buzzer, LCD 16x2, and Ultrasonic Sensor
+// This one is cool
+
+//LCD
+#include <LiquidCrystal.h>
+const int rs = 7, en = 8, d4 = 9, d5 = 10, d6 = 11, d7 = 12;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+//LEDS
+int led_Red = 2;
+int led_Yellow = 3;
+int led_Blue = 4;
+
+//button variables
+int buttonPin = 6;
+int buttonNew;
+int buttonOld = 1;
+
+// Buzzer
+const int buzzer = 13;
+
+byte fullBlock[8] = {
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111
+};
+
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  lcd.createChar(0, fullBlock);  // Store in slot 0
+  lcd.clear();
+
+  // pinMode functions
+  pinMode(led_Red, OUTPUT);
+  pinMode(led_Yellow, OUTPUT);
+  pinMode(led_Blue, OUTPUT);
+
+  pinMode(buttonPin, INPUT);
+}
+
+void loop() {
+
+  randomLights();
+  delay(20);
+
+  int pitch = random(220, 880);  
+  int bars = map(pitch, 220, 880, 1, 16);
+  bars = constrain(bars, 1, 16);  
+
+  static bool topLine = true;
+  lcd.setCursor(0, topLine ? 0 : 1);
+  topLine = !topLine;
+
+  // Clear line and draw bar graph
+  lcd.setCursor(0, 0);
+  for (int i = 0; i < 16; i++) {
+    if (i < bars) {
+      lcd.write(byte(0)); 
+    } else {
+      lcd.print(" ");
+    }
+  }
+
+  delay(100);
+}  
+
+
+void randomLights() {
+  int randLed = random(0, 3); 
+  int pitch = 0;
+  //tone(buzzer, randLed*0.2);
+
+  if (randLed == 0) {
+    digitalWrite(led_Red, HIGH);
+    delay(random(10, 100));
+    digitalWrite(led_Red, LOW);
+    pitch = 220;
+  } else if (randLed == 1) {
+    digitalWrite(led_Yellow, HIGH);
+    delay(random(5, 80));
+    digitalWrite(led_Yellow, LOW);
+    pitch = 440;
+  } else {
+    digitalWrite(led_Blue, HIGH);
+    delay(random(10, 100));
+    digitalWrite(led_Blue, LOW);
+    pitch = 880;
+  }
+
+  tone(buzzer, pitch * .001);
+  delay(random(80, 200));
+  noTone(buzzer);
+
+  // Turn all lights off after effect
+  digitalWrite(led_Red, LOW);
+  digitalWrite(led_Yellow, LOW);
+  digitalWrite(led_Blue, LOW);
+
+  delay(random(5, 100)); 
+}
